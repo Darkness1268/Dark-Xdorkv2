@@ -1,0 +1,374 @@
+# Clear screen
+clear
+
+# EXACT FIRE RGB GRADIENT PALETTE 🔥
+FIRE1='\033[38;2;255;100;0m'    # (255, 100, 0)
+FIRE2='\033[38;2;255;120;0m'    # (255, 120, 0)
+FIRE3='\033[38;2;255;140;0m'    # (255, 140, 0)
+FIRE4='\033[38;2;255;160;0m'    # (255, 160, 0)
+FIRE5='\033[38;2;255;180;0m'    # (255, 180, 0)
+FIRE6='\033[38;2;255;200;0m'    # (255, 200, 0)
+FIRE7='\033[38;2;255;220;0m'    # (255, 220, 0)
+FIRE8='\033[38;2;255;240;0m'    # (255, 240, 0)
+FIRE9='\033[38;2;255;255;0m'    # (255, 255, 0)
+FIRE10='\033[38;2;255;255;180m' # (255, 255, 180)
+FIRE9='\033[38;2;255;255;255m' # (255, 255, 255)
+NC='\033[0m'
+
+# Get system info QUICK (hindi mabagal)
+MODEL=$(getprop ro.product.model 2>/dev/null)
+BRAND=$(getprop ro.product.brand 2>/dev/null) 
+ANDROID=$(getprop ro.build.version.release 2>/dev/null)
+KERNEL=$(uname -r 2>/dev/null)
+SHELL_NAME=$(basename $SHELL)
+UPTIME=$(uptime -p 2>/dev/null | sed 's/up //')
+IP=$(curl -s --max-time 2 ifconfig.me)
+
+# Set defaults if empty
+: ${MODEL:=Unknown}
+: ${BRAND:=Unknown}
+: ${ANDROID:=Unknown}
+: ${KERNEL:=Unknown}
+: ${UPTIME:=Unknown}
+: ${IP:=No internet}
+
+# Display your ASCII art with EXACT fire gradient
+echo -e "${FIRE1}▒▒▒▒▒▒▒▒▄▄▄▄▄▄▄▄▒▒▒▒▒▒ ${FIRE1}User${NC}    : ${FIRE1}izunbi${NC}"
+echo -e "${FIRE2}▒▒█▒▒▒▄██████████▄▒▒▒▒ ${FIRE2}Device${NC}  : ${FIRE2}$MODEL${NC}"
+echo -e "${FIRE3}▒█▐▒▒▒████████████▒▒▒▒ ${FIRE3}Brand${NC}   : ${FIRE3}$BRAND${NC}"
+echo -e "${FIRE4}▒▌▐▒▒██▄▀██████▀▄██▒▒▒ ${FIRE4}Android${NC} : ${FIRE4}$ANDROID${NC}"
+echo -e "${FIRE5}▐┼▐▒▒██▄▄▄▄██▄▄▄▄██▒▒▒ ${FIRE5}Kernel${NC}  : ${FIRE5}$KERNEL${NC}"
+echo -e "${FIRE6}▐┼▐▒▒██████████████▒▒▒ ${FIRE6}Shell${NC}   : ${FIRE6}$SHELL_NAME${NC}"
+echo -e "${FIRE7}▐▄▐████─▀▐▐▀█─█─▌▐██▄▒ ${FIRE7}Uptime${NC}  : ${FIRE7}$UPTIME${NC}"
+echo -e "${FIRE8}▒▒█████──────────▐███▌ ${FIRE8}IP${NC}      : ${FIRE8}$IP${NC}"
+echo -e "${FIRE9}▒▒█▀▀██▄█─▄───▐─▄███▀▒ ${FIRE9}Date${NC}    : ${FIRE9}$(date '+%Y-%m-%d')${NC}"
+echo -e "${FIRE10}▒▒█▒▒███████▄██████▒▒▒ ${FIRE10}Time${NC}   : ${FIRE10}$(date '+%H:%M:%S')${NC}"
+echo -e "${FIRE1}▒▒▒▒▒██████████████▒▒▒ ${FIRE1}Theme${NC}  : ${FIRE1}Inferno${NC}"
+echo -e "${FIRE1}▒▒▒▒▒█████████▐▌██▌▒▒▒ ${FIRE1}Status${NC}  : ${FIRE5}Ready${NC}"
+echo -e "${FIRE2}▒▒▒▒▒▐▀▐▒▌▀█▀▒▐▒█▒▒▒▒▒ ${FIRE2}Version${NC} : ${FIRE3}v2.0${NC}"
+echo -e "${FIRE3}▒▒▒▒▒▒▒▒▒▒▒▐▒▒▒▒▌▒▒▒▒▒${NC}"
+
+# Show time and user with fire gradient
+echo -e "\n${FIRE4}╔══════════════════════════════════════╗"
+echo -e "${FIRE5}    ║    TIME: $(date '+%H:%M:%S') | USER: izunbi                               ║"
+echo -e "${FIRE6}    ╚══════════════════════════════════════╝${NC}"
+
+# ======= LSD ALIASES (MAY ICONS) =======
+if command -v lsd &> /dev/null; then
+    alias ls='lsd'
+    alias ll='lsd -l'
+    alias la='lsd -A'
+    alias l='lsd -lA'
+    alias lt='lsd --tree'
+    alias lsize='lsd -l --size short'
+    alias ltree='lsd --tree'
+else
+    # Kung wala lsd, standard ls na lang
+    alias ls='ls --color=auto'
+    alias ll='ls -la --color=auto'
+    alias la='ls -A --color=auto'
+    alias l='ls -la --color=auto'
+fi
+
+# Enhanced cd with auto-display
+cd() {
+    builtin cd "$@" && ls
+}
+
+# ======= FIRE GRADIENT PROMPT =======
+PROMPT='%F{166}[%F{220}izunbi%F{255}@%F{180}termux%F{166}]%F{200}%~%F{220}➜%f '
+
+# ======= LAHAT NG TOOLS ALIASES MO =======
+# SQLMap
+alias sqlmap='python3 ~/sqlmap-dev/sqlmap.py'
+alias sqli='python3 ~/sqlmap-dev/sqlmap.py --batch'
+alias sqlscan='python3 ~/sqlmap-dev/sqlmap.py --crawl=10'
+
+# PSQLi
+alias psqli='bash ~/psqli-pro/psqli.sh'
+alias psq='bash ~/psqli-pro/psqli.sh'
+alias proqli='bash ~/psqli-pro/psqli.sh'
+
+# XSStrike
+alias xss='python3 ~/XSStrike/xsstrike.py'
+alias xss-u='python3 ~/XSStrike/xsstrike.py -u'
+alias xss-crawl='python3 ~/XSStrike/xsstrike.py --crawl'
+alias xss-blind='python3 ~/XSStrike/xsstrike.py --blind'
+
+# Nmap
+alias nmap-quick='nmap -T4 -F'
+alias nmap-full='nmap -p- -sV -sC'
+alias nmap-stealth='nmap -sS -T2'
+alias nmap-udp='nmap -sU -T4'
+alias nmap-os='nmap -O --osscan-guess'
+alias nmap-vuln='nmap --script=vuln'
+
+# Nuclei
+export NUCLEI_TEMPLATES_DIR=~/nuclei-templates
+alias nuclei='nuclei -t ~/nuclei-templates/'
+alias nuclei-web='nuclei -t ~/nuclei-templates/ -u'
+alias nuclei-scan='nuclei -t ~/nuclei-templates/ -l targets.txt'
+
+# Subfinder
+alias subfind='subfinder -d'
+alias subenum='subfinder -d'
+
+# FFuF
+alias ffuf-scan='ffuf -u'
+
+# Hydra
+alias hydra-ssh='hydra -l'
+alias hydra-ftp='hydra -l'
+
+# Metasploit
+alias msfconsole='msfconsole -q'
+alias msfvenom='msfvenom'
+
+# John the Ripper
+alias john='john'
+alias john-wordlist='john --wordlist='
+
+# Aircrack-ng
+alias aircrack='aircrack-ng'
+alias airodump='airodump-ng'
+
+# Social Engineering Toolkit
+alias setoolkit='cd ~/setoolkit && python3 setoolkit'
+
+# The Harvester
+alias harvest='python3 ~/theHarvester/theHarvester.py'
+
+# Sherlock
+alias sherlock='python3 ~/sherlock/sherlock'
+
+# Waybackurls
+alias wayback='waybackurls'
+
+# Gau
+alias gau='gau'
+
+# Amass
+alias amass-enum='amass enum -d'
+
+# Naabu
+alias naabu-scan='naabu'
+
+# Hakrawler
+alias hakrawler='hakrawler'
+
+# Gospider
+alias gospider='gospider'
+
+# Commix
+alias commix='python3 ~/commix/commix.py'
+
+# WPScan
+alias wpscan='ruby ~/wpscan/wpscan.rb'
+
+# Nikto
+alias nikto='nikto'
+
+# Dirb
+alias dirb='dirb'
+alias dirsearch='python3 ~/dirsearch/dirsearch.py'
+
+# Gobuster
+alias gobuster-dir='gobuster dir'
+alias gobuster-dns='gobuster dns'
+
+# Wayback Machine
+alias waybackmachine='waybackurls'
+
+# ======= NAVIGATION =======
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ~='cd ~'
+alias /='cd /'
+
+# ======= SYSTEM ALIASES =======
+alias sysinfo='neofetch'
+alias update='pkg update && pkg upgrade -y'
+alias install='pkg install -y'
+alias remove='pkg remove -y'
+alias clean='pkg clean && pkg autoclean'
+alias battery='termux-battery-status'
+alias brightness='termux-brightness'
+alias volume='termux-volume'
+alias torch='termux-torch on'
+alias torch-off='termux-torch off'
+
+# ======= NETWORK ALIASES =======
+alias myip='curl ifconfig.me'
+alias ipinfo='curl ipinfo.io'
+alias ports='netstat -tulpn'
+alias trace='traceroute'
+alias pingg='ping -c 4'
+alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
+
+# ======= FILE OPERATIONS =======
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+alias mkdir='mkdir -p'
+alias rmdir='rm -rf'
+alias nano='nano -l'
+alias cat='bat --style=plain'
+
+# ======= GIT ALIASES =======
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit -m'
+alias gp='git push'
+alias gl='git log --oneline --graph --decorate'
+alias gclone='git clone'
+alias gdiff='git diff'
+alias gpull='git pull'
+alias gfetch='git fetch'
+
+# ======= PROCESS ALIASES =======
+alias psgrep='ps aux | grep -i'
+alias killp='kill -9'
+alias listp='ps aux'
+alias top='htop'
+
+# ======= FUN ALIASES =======
+alias weather='curl wttr.in'
+alias moon='curl wttr.in/Moon'
+alias starwars='telnet towel.blinkenlights.nl'
+alias matrix='cmatrix -s -C red'
+alias firetext='figlet -f slant'
+alias quote='fortune | cowsay | lolcat'
+alias hack='echo -e "${FIRE5}ACCESS GRANTED${NC}" | lolcat'
+
+# ======= PYTHON ALIASES =======
+alias py='python3'
+alias python='python3'
+alias pip='pip3'
+alias venv='python3 -m venv'
+alias server='python3 -m http.server 8080'
+
+# ======= TERMUX SPECIFIC =======
+alias termux-setup='pkg update && pkg upgrade -y && pkg install -y git python nodejs golang ruby perl nmap hydra sqlmap'
+alias storage='cd /sdcard'
+alias downloads='cd /sdcard/Download'
+alias camera='cd /sdcard/DCIM/Camera'
+
+# ======= CUSTOM FUNCTIONS =======
+# Fire banner
+fire() {
+    clear
+    echo -e "${FIRE1}▒▒▒▒▒▒▒▒▄▄▄▄▄▄▄▄▒▒▒▒▒▒ ${FIRE1}User${NC}    : ${FIRE11}izunbi${NC}"
+    echo -e "${FIRE2}▒▒█▒▒▒▄██████████▄▒▒▒▒ ${FIRE2}Device${NC}  : ${FIRE11}$MODEL${NC}"
+    echo -e "${FIRE3}▒█▐▒▒▒████████████▒▒▒▒ ${FIRE3}Brand${NC}   : ${FIRE11}$BRAND${NC}"
+    echo -e "${FIRE4}▒▌▐▒▒██▄▀██████▀▄██▒▒▒ ${FIRE4}Android${NC} : ${FIRE11}$ANDROID${NC}"
+    echo -e "${FIRE5}▐┼▐▒▒██▄▄▄▄██▄▄▄▄██▒▒▒ ${FIRE5}Kernel${NC}  : ${FIRE11}$KERNEL${NC}"
+    echo -e "${FIRE6}▐┼▐▒▒██████████████▒▒▒ ${FIRE6}Shell${NC}   : ${FIRE11}$SHELL_NAME${NC}"
+    echo -e "${FIRE7}▐▄▐████─▀▐▐▀█─█─▌▐██▄▒ ${FIRE7}Uptime${NC}  : ${FIRE11}$UPTIME${NC}"
+    echo -e "${FIRE8}▒▒█████──────────▐███▌ ${FIRE8}IP${NC}      : ${FIRE11}$IP${NC}"
+    echo -e "${FIRE9}▒▒█▀▀██▄█─▄───▐─▄███▀▒ ${FIRE9}Date${NC}    : ${FIRE11}$(date '+%Y-%m-%d')${NC}"
+    echo -e "${FIRE10}▒▒█▒▒███████▄██████▒▒▒ ${FIRE10}Time${NC}   : ${FIRE11}$(date '+%H:%M:%S')${NC}"
+    echo -e "${FIRE11}▒▒▒▒▒██████████████▒▒▒ ${FIRE11}Theme${NC}  : ${FIRE1}Inferno${NC}"
+    echo -e "${FIRE1}▒▒▒▒▒█████████▐▌██▌▒▒▒ ${FIRE1}Status${NC}  : ${FIRE5}Ready${NC}"
+    echo -e "${FIRE2}▒▒▒▒▒▐▀▐▒▌▀█▀▒▐▒█▒▒▒▒▒ ${FIRE2}Version${NC} : ${FIRE3}v2.0${NC}"
+    echo -e "${FIRE3}▒▒▒▒▒▒▒▒▒▒▒▐▒▒▒▒▌▒▒▒▒▒${NC}"
+
+    echo -e "${FIRE5}    TIME: $(date '+%H:%M:%S') | USER: izunbi                                ║"
+
+}
+
+# Tool installer
+install-tools() {
+    echo -e "${FIRE1}Installing tools...${NC}"
+    
+    # Update first
+    pkg update && pkg upgrade -y
+    
+    # Install essentials
+    pkg install -y git python nodejs golang ruby perl nmap hydra sqlite curl wget
+    
+    # Python tools
+    pip install requests beautifulsoup4 selenium colorama
+    
+    # Clone tools
+    echo -e "${FIRE2}Cloning tools...${NC}"
+    
+    # SQLMap
+    if [ ! -d ~/sqlmap-dev ]; then
+        git clone https://github.com/sqlmapproject/sqlmap.git ~/sqlmap-dev
+    fi
+    
+    # XSStrike
+    if [ ! -d ~/XSStrike ]; then
+        git clone https://github.com/s0md3v/XSStrike.git ~/XSStrike
+    fi
+    
+    # Nuclei templates
+    if [ ! -d ~/nuclei-templates ]; then
+        git clone https://github.com/projectdiscovery/nuclei-templates.git ~/nuclei-templates
+    fi
+    
+    echo -e "${FIRE3}Tools installed! Restart Termux.${NC}"
+}
+
+# Help function
+tools-help() {
+    echo -e "${FIRE1}════════════════════════════════════════${NC}"
+    echo -e "${FIRE2}           TOOLS QUICK GUIDE           ${NC}"
+    echo -e "${FIRE3}════════════════════════════════════════${NC}"
+    echo -e "${FIRE4}SQLMap:${NC}"
+    echo -e "  ${FIRE5}sqlmap -u \"http://site.com\" --dbs${NC}"
+    echo -e "  ${FIRE5}sqli${NC} (auto batch mode)"
+    echo -e ""
+    echo -e "${FIRE4}XSS:${NC}"
+    echo -e "  ${FIRE5}xss -u \"http://site.com\"${NC}"
+    echo -e "  ${FIRE5}xss-crawl -u \"http://site.com\"${NC}"
+    echo -e ""
+    echo -e "${FIRE4}Nmap:${NC}"
+    echo -e "  ${FIRE5}nmap-quick target.com${NC}"
+    echo -e "  ${FIRE5}nmap-full target.com${NC}"
+    echo -e "  ${FIRE5}nmap-stealth target.com${NC}"
+    echo -e ""
+    echo -e "${FIRE4}Others:${NC}"
+    echo -e "  ${FIRE5}fire${NC} - Show banner"
+    echo -e "  ${FIRE5}tools-help${NC} - This menu"
+    echo -e "  ${FIRE5}install-tools${NC} - Install tools"
+    echo -e "${FIRE1}════════════════════════════════════════${NC}"
+}
+
+# Quick status
+status() {
+    echo -e "${FIRE1}[*] User: izunbi${NC}"
+    echo -e "${FIRE2}[*] Device: $MODEL${NC}"
+    echo -e "${FIRE3}[*] IP: $IP${NC}"
+    echo -e "${FIRE4}[*] Time: $(date '+%H:%M:%S')${NC}"
+    echo -e "${FIRE5}[*] Tools: Ready${NC}"
+}
+
+# ======= ZSH SETTINGS =======
+HISTFILE=~/.zsh_history
+HISTSIZE=1000
+SAVEHIST=1000
+setopt appendhistory
+setopt sharehistory
+setopt incappendhistory
+
+# Auto-completion
+autoload -Uz compinit
+compinit
+zstyle ':completion:*' menu select
+
+# Load syntax highlighting if exists
+if [ -f ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+    source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+# Load auto-suggestions if exists
+if [ -f ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+    source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# ======= FINAL MESSAGE =======
+echo -e "${FIRE7}Type 'tools-help' for tools guide${NC}"
+echo -e "${FIRE8}Type 'fire' to show banner again${NC}"
