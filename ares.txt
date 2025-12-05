@@ -1,0 +1,1257 @@
+clear
+
+# ===========================================
+# SIMPLE RED/WHITE PROMPT (NO POWERLEVEL10K)
+# ===========================================
+
+# Red/White Color Scheme
+RED='\033[0;31m'
+BRED='\033[1;31m'
+WHITE='\033[1;37m'
+RED_BG='\033[41m'
+WHITE_BG='\033[47m'
+GRADIENT_RED1='\033[38;2;255;182;193m'  # Light red
+GRADIENT_RED2='\033[38;2;255;105;97m'   # Medium red
+GRADIENT_RED3='\033[38;2;220;20;60m'    # Crimson
+GRADIENT_RED4='\033[38;2;178;34;34m'    # Firebrick
+NC='\033[0m'
+
+# Additional colors for tools
+BIBlack='\033[1;90m'
+BIRed='\033[1;91m'
+BIGreen='\033[1;92m'
+BIYellow='\033[1;93m'
+BIBlue='\033[1;94m'
+BIPurple='\033[1;95m'
+BICyan='\033[1;96m'
+BIWhite='\033[1;97m'
+
+On_IBlack='\033[0;100m'
+On_IRed='\033[0;101m'
+On_IGreen='\033[0;102m'
+On_IYellow='\033[0;103m'
+On_IBlue='\033[0;104m'
+On_IPurple='\033[0;105m'
+On_ICyan='\033[0;106m'
+On_IWhite='\033[0;107m'
+
+PURPLE_BG='\033[48;5;54m'
+
+export LS_COLORS="di=1;36:ln=1;36:so=1;36:pi=1;36:ex=1;32:*.txt=1;36:*.sh=1;32:*.py=1;32:*.js=1;33:*.html=1;33:*.css=1;33:*.json=1;33:*.xml=1;33:*.zip=1;31:*.tar=1;31:*.gz=1;31:*.deb=1;31:*.rpm=1;31:*.mp3=1;35:*.mp4=1;35:*.avi=1;35:*.mkv=1;35:*.jpg=1;35:*.png=1;35:*.gif=1;35:*.pdf=1;31"
+
+# Simple red/white prompt
+PROMPT='%F{red}┌─[%F{white}%n%F{red}@%F{white}%m%F{red}]─[%F{white}%~%F{red}]
+└─%F{white}❯%F{red}❯%F{white}❯%f '
+
+# ===========================================
+# CUSTOM FUNCTIONS AND ALIASES
+# ===========================================
+
+ls_emoji() {
+    ls -la --color=always "$@" | awk '
+    {
+        # Add emojis based on file types
+        if ($1 ~ /^d/) printf "📁 "    # Directory
+        else if ($1 ~ /^l/) printf "🔗 "    # Symbolic link
+        else if ($1 ~ /^-.x/) printf "⚡ "  # Executable
+        else if ($NF ~ /\.py$/) printf "🐍 "    # Python
+        else if ($NF ~ /\.js$/) printf "📜 "    # JavaScript
+        else if ($NF ~ /\.html?$/) printf "🌐 " # HTML
+        else if ($NF ~ /\.css$/) printf "🎨 "  # CSS
+        else if ($NF ~ /\.sh$/) printf "🐚 "   # Shell script
+        else if ($NF ~ /\.json$/) printf "📋 " # JSON
+        else if ($NF ~ /\.txt$/) printf "📄 "  # Text file
+        else if ($NF ~ /\.zip$|\.tar$|\.gz$/) printf "📦 " # Archive
+        else if ($NF ~ /\.mp3$|\.mp4$|\.avi$|\.mkv$/) printf "🎵 " # Media
+        else if ($NF ~ /\.jpg$|\.png$|\.gif$/) printf "🖼️ " # Images
+        else if ($NF ~ /\.pdf$/) printf "📕 "  # PDF
+        else printf "📄 "  # Default file
+
+        print $0
+    }'
+}
+
+greenwrap() {
+    echo -n "${BIGreen}"
+    eval "$@"
+    echo -n "${NC}"
+}
+
+gecho() {
+    echo -e "${BIGreen}$@${NC}"
+}
+
+# ===========================================
+# CREATE ORGANIZED DIRECTORIES
+# ===========================================
+mkdir -p ~/recon_results 2>/dev/null
+mkdir -p ~/recon_results/sqli_results 2>/dev/null
+mkdir -p ~/recon_results/xss_results 2>/dev/null
+mkdir -p ~/recon_results/dir_results 2>/dev/null
+mkdir -p ~/recon_results/nmap_results 2>/dev/null
+mkdir -p ~/recon_results/param_results 2>/dev/null
+mkdir -p ~/recon_results/osint_results 2>/dev/null
+mkdir -p ~/recon_results/workflow_results 2>/dev/null
+
+# ===========================================
+# HELPER FUNCTIONS
+# ===========================================
+
+clean_domain() {
+    local domain="$1"
+    domain="${domain#http://}"
+    domain="${domain#https://}"
+    domain="${domain%%/*}"
+    domain="${domain%%:*}"
+    echo "$domain" | sed 's/[^a-zA-Z0-9]/_/g'
+}
+
+check_cmd() {
+    if command -v "$1" &>/dev/null; then
+        return 0
+    else
+        echo -e "${BIRed}Error: $1 not installed. Run 'install-pentest' first.${NC}"
+        return 1
+    fi
+}
+
+# ===========================================
+# FIXED TOOL CHECK FUNCTIONS
+# ===========================================
+
+# Function to check if a tool exists in multiple locations
+check_tool() {
+    local tool_name="$1"
+    local tool_path="$2"
+    
+    # First check if it's in PATH
+    if command -v "$tool_name" &>/dev/null; then
+        return 0
+    # Check specific path if provided
+    elif [[ -n "$tool_path" && -f "$tool_path" ]]; then
+        return 0
+    # Check common Go tool locations
+    elif [[ -f "$HOME/go/bin/$tool_name" ]]; then
+        return 0
+    # Check common directories
+    elif [[ "$tool_name" == "sqlmap" && -f "$HOME/sqlmap-dev/sqlmap.py" ]]; then
+        return 0
+    elif [[ "$tool_name" == "xsstrike" && -d "$HOME/XSStrike" ]]; then
+        return 0
+    elif [[ "$tool_name" == "dirsearch" && -d "$HOME/dirsearch" ]]; then
+        return 0
+    elif [[ "$tool_name" == "paramspider" && -d "$HOME/ParamSpider" ]]; then
+        return 0
+    elif [[ "$tool_name" == "sherlock" && -d "$HOME/sherlock" ]]; then
+        return 0
+    elif [[ "$tool_name" == "phoneinfoga" && -d "$HOME/phoneinfoga" ]]; then
+        return 0
+    elif [[ "$tool_name" == "goodork" && -d "$HOME/GooDork" ]]; then
+        return 0
+    elif [[ "$tool_name" == "psqli-pro" && -d "$HOME/psqli-pro" ]]; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# ===========================================
+# AUTO-INSTALL FUNCTIONS
+# ===========================================
+
+install_tool() {
+    local tool_name="$1"
+    local install_func="$2"
+
+    if [[ ! -d "$HOME/$tool_name" ]] && [[ ! -f "$(which $tool_name 2>/dev/null)" ]]; then
+        echo -e "${BIYellow}Installing $tool_name...${NC}"
+        $install_func
+        echo -e "${BIGreen}✓ $tool_name installed${NC}"
+    else
+        echo -e "${BICyan}✓ $tool_name already installed${NC}"
+    fi
+}
+
+# ========== SQL INJECTION TOOLS ==========
+
+install_sqlmap() {
+    git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git ~/sqlmap-dev
+}
+
+install_psqli_pro() {
+    git clone https://github.com/root-tanishq/psqli-pro.git ~/psqli-pro
+}
+
+install_sqli_tools() {
+    echo -e "${BIPurple}Installing SQL Injection Tools...${NC}"
+    install_tool "sqlmap-dev" install_sqlmap
+    install_tool "psqli-pro" install_psqli_pro
+}
+
+# ========== XSS TOOLS ==========
+
+install_xsstrike() {
+    git clone https://github.com/s0md3v/XSStrike.git ~/XSStrike
+    cd ~/XSStrike && pip install -r requirements.txt 2>/dev/null || pip3 install -r requirements.txt 2>/dev/null || true
+}
+
+install_dalfox() {
+    go install github.com/hahwul/dalfox/v2@latest
+}
+
+install_xss_tools() {
+    echo -e "${BIPurple}Installing XSS Tools...${NC}"
+    install_tool "XSStrike" install_xsstrike
+    install_tool "dalfox" install_dalfox
+}
+
+# ========== RECON TOOLS ==========
+
+install_subfinder() {
+    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+}
+
+install_httpx() {
+    go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+}
+
+install_katana() {
+    go install github.com/projectdiscovery/katana/cmd/katana@latest
+}
+
+install_waybackurls() {
+    go install github.com/tomnomnom/waybackurls@latest
+}
+
+install_gau() {
+    go install github.com/lc/gau/v2/cmd/gau@latest
+}
+
+install_assetfinder() {
+    go install github.com/tomnomnom/assetfinder@latest
+}
+
+install_recon_tools() {
+    echo -e "${BIPurple}Installing Recon Tools...${NC}"
+    install_tool "subfinder" install_subfinder
+    install_tool "httpx" install_httpx
+    install_tool "katana" install_katana
+    install_tool "waybackurls" install_waybackurls
+    install_tool "assetfinder" install_assetfinder
+    install_tool "gau" install_gau
+}
+
+# ========== DIRECTORY SCANNING ==========
+
+install_dirsearch() {
+    git clone https://github.com/maurosoria/dirsearch.git ~/dirsearch
+}
+
+install_gobuster() {
+    go install github.com/OJ/gobuster/v3@latest
+}
+
+install_ffuf() {
+    go install github.com/ffuf/ffuf@latest
+}
+
+install_vuln_tools() {
+    echo -e "${BIPurple}Installing Vulnerability Scanners...${NC}"
+    install_tool "dirsearch" install_dirsearch
+    install_tool "gobuster" install_gobuster
+    install_tool "ffuf" install_ffuf
+}
+
+# ========== UTILITY TOOLS ==========
+
+install_jq() {
+    pkg install jq -y
+}
+
+install_wget() {
+    pkg install wget -y
+}
+
+install_curl() {
+    pkg install curl -y
+}
+
+install_utils() {
+    echo -e "${BIPurple}Installing Utilities...${NC}"
+    install_tool "jq" install_jq
+    install_tool "wget" install_wget
+    install_tool "curl" install_curl
+}
+
+# ========== OSINT TOOLS FIXED ==========
+
+install_paramspider() {
+    git clone https://github.com/devanshbatham/ParamSpider ~/ParamSpider
+    cd ~/ParamSpider && pip3 install -r requirements.txt 2>/dev/null || true
+}
+
+install_arjun() {
+    pip3 install arjun 2>/dev/null || pip install arjun 2>/dev/null || true
+}
+
+install_gf() {
+    go install github.com/tomnomnom/gf@latest
+    mkdir -p ~/.gf 2>/dev/null
+    [ -d ~/.gf ] || git clone https://github.com/tomnomnom/gf ~/.gf 2>/dev/null
+}
+
+install_goodork() {
+    git clone https://github.com/k3170makan/GooDork ~/GooDork 2>/dev/null || true
+    cd ~/GooDork 2>/dev/null && pip3 install -r requirements.txt 2>/dev/null || true
+}
+
+install_sherlock() {
+    if [ -d ~/sherlock ]; then
+        rm -rf ~/sherlock
+    fi
+    git clone https://github.com/sherlock-project/sherlock.git ~/sherlock
+    cd ~/sherlock
+    python3 -m pip install -r requirements.txt 2>/dev/null || pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt 2>/dev/null || true
+    echo -e "${BIGreen}Sherlock installed in ~/sherlock${NC}"
+}
+
+install_phoneinfoga() {
+    if [ -d ~/phoneinfoga ]; then
+        rm -rf ~/phoneinfoga
+    fi
+    git clone https://github.com/sundowndev/phoneinfoga.git ~/phoneinfoga
+    cd ~/phoneinfoga
+    if command -v docker &>/dev/null; then
+        docker build -t phoneinfoga . 2>/dev/null || echo "Docker build failed, using Python"
+    fi
+    pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt 2>/dev/null || true
+    echo -e "${BIGreen}PhoneInfoga installed in ~/phoneinfoga${NC}"
+}
+
+install_osint_tools() {
+    echo -e "${BIPurple}Installing OSINT Tools...${NC}"
+    install_tool "ParamSpider" install_paramspider
+    install_tool "arjun" install_arjun
+    install_tool "gf" install_gf
+    install_tool "GooDork" install_goodork
+    install_tool "sherlock" install_sherlock
+    install_tool "phoneinfoga" install_phoneinfoga
+}
+
+# ========== MAIN INSTALLATION FUNCTION ==========
+
+install_all_tools() {
+    echo -e "${BIYellow}Starting installation of pentesting tools...${NC}"
+
+    pkg update -y && pkg upgrade -y
+    pkg install python python-pip golang -y
+
+    export GOPATH=$HOME/go
+    export PATH=$PATH:$GOPATH/bin
+    echo 'export GOPATH=$HOME/go' >> ~/.zshrc
+    echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
+
+    install_utils
+    install_sqli_tools
+    install_xss_tools
+    install_recon_tools
+    install_vuln_tools
+    install_osint_tools
+
+    echo -e "${BIGreen}✓ All tools installed successfully!${NC}"
+    echo -e "${BICyan}Run: source ~/.zshrc${NC}"
+}
+
+# ===========================================
+# FIXED TOOL ALIASES (NOW USING FUNCTIONS)
+# ===========================================
+
+# SQL Injection Functions
+sqlmap() {
+    if [[ -f ~/sqlmap-dev/sqlmap.py ]]; then
+        python3 ~/sqlmap-dev/sqlmap.py "$@"
+    elif command -v sqlmap &>/dev/null; then
+        command sqlmap "$@"
+    else
+        echo -e "${BIRed}SQLMap not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+
+alias sqli='sqlmap --batch'
+
+psqli() {
+    if [[ -f ~/psqli-pro/psqli.sh ]]; then
+        bash ~/psqli-pro/psqli.sh "$@"
+    elif [[ -f ~/psqli-pro/psqli.py ]]; then
+        python3 ~/psqli-pro/psqli.py "$@"
+    else
+        echo -e "${BIRed}PSQLi Pro not installed${NC}"
+        return 1
+    fi
+}
+alias psq='psqli'
+alias proqli='psqli'
+
+# XSS Functions
+xss() {
+    if [[ -f ~/XSStrike/xsstrike.py ]]; then
+        python3 ~/XSStrike/xsstrike.py "$@"
+    elif command -v xsstrike &>/dev/null; then
+        command xsstrike "$@"
+    else
+        echo -e "${BIRed}XSStrike not installed${NC}"
+        return 1
+    fi
+}
+alias xss-u='xss -u'
+alias xss-crawl='xss --crawl'
+alias xss-fuzz='xss --fuzzer'
+alias xss-file='xss --file'
+alias xss-update='cd ~/XSStrike 2>/dev/null && git pull || echo "XSStrike not found"'
+
+dalfox() {
+    if command -v dalfox &>/dev/null; then
+        command dalfox "$@"
+    elif [[ -f ~/go/bin/dalfox ]]; then
+        ~/go/bin/dalfox "$@"
+    else
+        echo -e "${BIRed}Dalfox not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias dalfox-scan='dalfox'
+
+# Recon Functions
+subfinder() {
+    if command -v subfinder &>/dev/null; then
+        command subfinder "$@"
+    elif [[ -f ~/go/bin/subfinder ]]; then
+        ~/go/bin/subfinder "$@"
+    else
+        echo -e "${BIRed}Subfinder not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias sub='subfinder'
+
+httpx() {
+    if command -v httpx &>/dev/null; then
+        command httpx "$@"
+    elif [[ -f ~/go/bin/httpx ]]; then
+        ~/go/bin/httpx "$@"
+    else
+        echo -e "${BIRed}HTTPX not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias httpx-scan='httpx'
+
+katana() {
+    if command -v katana &>/dev/null; then
+        command katana "$@"
+    elif [[ -f ~/go/bin/katana ]]; then
+        ~/go/bin/katana "$@"
+    else
+        echo -e "${BIRed}Katana not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias katanascan='katana'
+
+waybackurls() {
+    if command -v waybackurls &>/dev/null; then
+        command waybackurls "$@"
+    elif [[ -f ~/go/bin/waybackurls ]]; then
+        ~/go/bin/waybackurls "$@"
+    else
+        echo -e "${BIRed}Waybackurls not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias wayback='waybackurls'
+
+assetfinder() {
+    if command -v assetfinder &>/dev/null; then
+        command assetfinder "$@"
+    elif [[ -f ~/go/bin/assetfinder ]]; then
+        ~/go/bin/assetfinder "$@"
+    else
+        echo -e "${BIRed}Assetfinder not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias assets='assetfinder'
+
+gau() {
+    if command -v gau &>/dev/null; then
+        command gau "$@"
+    elif [[ -f ~/go/bin/gau ]]; then
+        ~/go/bin/gau "$@"
+    else
+        echo -e "${BIRed}GAU not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias gau-urls='gau'
+
+# Directory Scanning
+dirsearch() {
+    if [[ -f ~/dirsearch/dirsearch.py ]]; then
+        python3 ~/dirsearch/dirsearch.py "$@"
+    elif command -v dirsearch &>/dev/null; then
+        command dirsearch "$@"
+    else
+        echo -e "${BIRed}Dirsearch not installed${NC}"
+        return 1
+    fi
+}
+
+gobuster() {
+    if command -v gobuster &>/dev/null; then
+        command gobuster "$@"
+    elif [[ -f ~/go/bin/gobuster ]]; then
+        ~/go/bin/gobuster "$@"
+    else
+        echo -e "${BIRed}Gobuster not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias gobust='gobuster'
+
+ffuf() {
+    if command -v ffuf &>/dev/null; then
+        command ffuf "$@"
+    elif [[ -f ~/go/bin/ffuf ]]; then
+        ~/go/bin/ffuf "$@"
+    else
+        echo -e "${BIRed}FFUF not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias fuzz='ffuf'
+
+# Parameter Discovery
+paramspider() {
+    if [[ -f ~/ParamSpider/paramspider.py ]]; then
+        python3 ~/ParamSpider/paramspider.py "$@"
+    elif command -v paramspider &>/dev/null; then
+        command paramspider "$@"
+    else
+        echo -e "${BIRed}ParamSpider not installed${NC}"
+        return 1
+    fi
+}
+alias param-spider='paramspider'
+
+arjun() {
+    if command -v arjun &>/dev/null; then
+        command arjun "$@"
+    elif python3 -c "import arjun" &>/dev/null; then
+        python3 -m arjun "$@"
+    else
+        echo -e "${BIRed}Arjun not installed${NC}"
+        return 1
+    fi
+}
+alias arjun-scan='arjun'
+alias param-hunt='arjun-scan'
+
+# Pattern Matching
+gf() {
+    if command -v gf &>/dev/null; then
+        command gf "$@"
+    elif [[ -f ~/go/bin/gf ]]; then
+        ~/go/bin/gf "$@"
+    else
+        echo -e "${BIRed}GF not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias gf-patterns='gf'
+alias find-sqli='gf sqli'
+alias find-xss='gf xss'
+
+goodork() {
+    if [[ -f ~/GooDork/GooDork.py ]]; then
+        python3 ~/GooDork/GooDork.py "$@"
+    else
+        echo -e "${BIRed}GooDork not installed${NC}"
+        return 1
+    fi
+}
+
+# FIXED OSINT Tool Functions
+sherlock() {
+    if [[ -f ~/sherlock/sherlock/sherlock.py ]]; then
+        python3 ~/sherlock/sherlock/sherlock.py "$@"
+    elif [[ -f ~/sherlock/sherlock.py ]]; then
+        python3 ~/sherlock/sherlock.py "$@"
+    elif command -v sherlock &>/dev/null; then
+        command sherlock "$@"
+    else
+        echo -e "${BIRed}Sherlock not installed${NC}"
+        return 1
+    fi
+}
+
+phoneinfoga() {
+    if [[ -f ~/phoneinfoga/phoneinfoga.py ]]; then
+        cd ~/phoneinfoga && python3 phoneinfoga.py "$@"
+    elif command -v phoneinfoga &>/dev/null; then
+        command phoneinfoga "$@"
+    else
+        echo -e "${BIRed}PhoneInfoga not installed${NC}"
+        return 1
+    fi
+}
+
+# Quick workflows
+get-urls() {
+    if [[ ! -f domains.txt ]]; then
+        echo -e "${BIRed}Create domains.txt first${NC}"
+        return 1
+    fi
+    
+    echo "Collecting URLs..."
+    if command -v waybackurls &>/dev/null && command -v gau &>/dev/null; then
+        cat domains.txt | waybackurls 2>/dev/null | tee ~/recon_results/workflow_results/collected_urls.txt
+        cat domains.txt | gau 2>/dev/null | tee -a ~/recon_results/workflow_results/collected_urls.txt
+        sort -u ~/recon_results/workflow_results/collected_urls.txt -o ~/recon_results/workflow_results/collected_urls.txt
+        echo -e "${BIGreen}✓ URLs collected${NC}"
+    else
+        echo -e "${BIRed}Waybackurls or GAU not installed${NC}"
+    fi
+}
+alias urls='echo "Usage: First create domains.txt, then run get-urls"'
+
+# ========== UTILITY ALIASES ==========
+
+alias install-pentest='install_all_tools'
+alias update-tools='{ cd ~/XSStrike 2>/dev/null && git pull; cd ~/sqlmap-dev 2>/dev/null && git pull; cd ~/dirsearch 2>/dev/null && git pull; echo "Tools updated"; } || echo "Some tools not found"'
+
+check-tools() {
+    echo -e "${BICyan}Installed Tools:${NC}\n"
+    
+    # SQL Tools
+    if [[ -f ~/sqlmap-dev/sqlmap.py ]] || command -v sqlmap &>/dev/null; then
+        echo -e "${BIGreen}✓ sqlmap${NC}"
+    else
+        echo -e "${BIRed}✗ sqlmap${NC}"
+    fi
+    
+    if [[ -d ~/psqli-pro ]]; then
+        echo -e "${BIGreen}✓ psqli-pro${NC}"
+    else
+        echo -e "${BIRed}✗ psqli-pro${NC}"
+    fi
+    
+    # XSS Tools
+    if [[ -d ~/XSStrike ]]; then
+        echo -e "${BIGreen}✓ XSStrike${NC}"
+    else
+        echo -e "${BIRed}✗ XSStrike${NC}"
+    fi
+    
+    if command -v dalfox &>/dev/null || [[ -f ~/go/bin/dalfox ]]; then
+        echo -e "${BIGreen}✓ dalfox${NC}"
+    else
+        echo -e "${BIRed}✗ dalfox${NC}"
+    fi
+    
+    # Recon Tools
+    tools=("subfinder" "httpx" "katana" "waybackurls" "assetfinder" "gau" "gobuster" "ffuf" "nmap" "python3")
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" &>/dev/null; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "subfinder" && -f ~/go/bin/subfinder ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "httpx" && -f ~/go/bin/httpx ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "katana" && -f ~/go/bin/katana ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "waybackurls" && -f ~/go/bin/waybackurls ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "assetfinder" && -f ~/go/bin/assetfinder ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "gau" && -f ~/go/bin/gau ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "gobuster" && -f ~/go/bin/gobuster ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        elif [[ "$tool" == "ffuf" && -f ~/go/bin/ffuf ]]; then
+            echo -e "${BIGreen}✓ $tool${NC}"
+        else
+            echo -e "${BIRed}✗ $tool${NC}"
+        fi
+    done
+    
+    # Directory tools
+    if [[ -d ~/dirsearch ]]; then
+        echo -e "${BIGreen}✓ dirsearch${NC}"
+    else
+        echo -e "${BIRed}✗ dirsearch${NC}"
+    fi
+    
+    # Parameter tools
+    if [[ -d ~/ParamSpider ]]; then
+        echo -e "${BIGreen}✓ ParamSpider${NC}"
+    else
+        echo -e "${BIRed}✗ ParamSpider${NC}"
+    fi
+    
+    if command -v arjun &>/dev/null || python3 -c "import arjun" &>/dev/null; then
+        echo -e "${BIGreen}✓ arjun${NC}"
+    else
+        echo -e "${BIRed}✗ arjun${NC}"
+    fi
+    
+    # OSINT tools
+    if [[ -d ~/sherlock ]]; then
+        echo -e "${BIGreen}✓ sherlock${NC}"
+    else
+        echo -e "${BIRed}✗ sherlock${NC}"
+    fi
+    
+    if [[ -d ~/phoneinfoga ]]; then
+        echo -e "${BIGreen}✓ phoneinfoga${NC}"
+    else
+        echo -e "${BIRed}✗ phoneinfoga${NC}"
+    fi
+    
+    if [[ -d ~/GooDork ]]; then
+        echo -e "${BIGreen}✓ GooDork${NC}"
+    else
+        echo -e "${BIRed}✗ GooDork${NC}"
+    fi
+    
+    echo -e "\n${BICyan}Run 'install-pentest' to install missing tools${NC}"
+}
+
+# Navigation aliases
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# Nmap aliases
+alias nmap-quick='nmap -T4 -F'
+alias nmap-full='nmap -p- -sV -sC'
+alias nmap-stealth='nmap -sS'
+alias nmap-udp='nmap -sU'
+alias nmap-os='nmap -O'
+
+# File listing
+unalias ls ll la l lt 2>/dev/null
+if command -v lsd &>/dev/null; then
+    alias ls='lsd'
+    alias ll='lsd -l'
+    alias la='lsd -A'
+    alias l='lsd -lA'
+    alias lt='lsd --tree'
+else
+    alias ls='ls --color=auto'
+    alias ll='ls -l --color=auto'
+    alias la='ls -la --color=auto'
+    alias l='ls -la --color=auto'
+fi
+
+list() {
+  echo -e "${BICyan}Directory: ${PWD}${NC}"
+  ls_emoji
+}
+
+# ===========================================
+# FIXED SCAN FUNCTIONS WITH ORGANIZED OUTPUT
+# ===========================================
+
+create-domains() {
+    echo -e "${BIYellow}Creating/Updating domains.txt${NC}"
+    echo -e "${BICyan}Enter domains (one per line, Ctrl+D when done):${NC}"
+    cat > domains.txt
+    count=$(wc -l domains.txt 2>/dev/null | awk '{print $1}')
+    echo -e "${BIGreen}✓ domains.txt created with $count domains${NC}"
+    echo -e "${BICyan}Now run: get-urls${NC}"
+}
+
+sqlmap-scan() {
+    echo -e "${BIYellow}SQL Injection Scan${NC}"
+    echo -e "${BICyan}Enter target URL: ${NC}"
+    read target
+    
+    clean_name=$(clean_domain "$target")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/sqli_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/sqlmap_scan.txt"
+    
+    echo -e "${BIBlue}Running SQLMap on $target...${NC}"
+    sqlmap -u "$target" --batch --level=3 --risk=2 | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/sqli_results/${NC}"
+}
+
+xss-scan() {
+    echo -e "${BIYellow}XSS Vulnerability Scan${NC}"
+    echo -e "${BICyan}Enter target URL: ${NC}"
+    read target
+    
+    clean_name=$(clean_domain "$target")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/xss_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/xss_scan.txt"
+    
+    echo -e "${BIBlue}Running XSStrike on $target...${NC}"
+    xss -u "$target" --crawl 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/xss_results/${NC}"
+}
+
+dir-scan() {
+    echo -e "${BIYellow}Directory Bruteforce Scan${NC}"
+    echo -e "${BICyan}Enter target URL: ${NC}"
+    read target
+    
+    clean_name=$(clean_domain "$target")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/dir_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/dir_scan.txt"
+    
+    echo -e "${BIBlue}Running Dirsearch on $target...${NC}"
+    dirsearch -u "$target" -e php,html,js,txt,json -t 50 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/dir_results/${NC}"
+}
+
+nmap-scan() {
+    echo -e "${BIYellow}Network Port Scan${NC}"
+    echo -e "${BICyan}Enter target IP/Domain: ${NC}"
+    read target
+    
+    clean_name=$(clean_domain "$target")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/nmap_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/nmap_scan.txt"
+    
+    echo -e "${BIBlue}Running Nmap scan on $target...${NC}"
+    nmap -sV -sC -T4 -p- "$target" 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/nmap_results/${NC}"
+}
+
+param-scan() {
+    echo -e "${BIYellow}Parameter Discovery Scan${NC}"
+    echo -e "${BICyan}Enter domain: ${NC}"
+    read domain
+    
+    clean_name=$(clean_domain "$domain")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/param_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/parameters.txt"
+    
+    echo -e "${BIBlue}Finding parameters for $domain...${NC}"
+    paramspider -d "$domain" 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/param_results/${NC}"
+}
+
+# ===========================================
+# FIXED OSINT FUNCTIONS WITH OUTPUT DIRECTORIES
+# ===========================================
+
+sherlock-scan() {
+    echo -e "${BIYellow}Username OSINT Scan${NC}"
+    echo -e "${BICyan}Enter username to search: ${NC}"
+    read username
+    
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/osint_results/sherlock_${username}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/sherlock_results.txt"
+    
+    echo -e "${BIBlue}Searching for $username across social networks...${NC}"
+    
+    sherlock "$username" --timeout 10 --print-found 2>/dev/null | tee "$output_file"
+    
+    found_count=$(grep -c "[+]" "$output_file" 2>/dev/null || echo "0")
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/osint_results/${NC}"
+    echo -e "${BICyan}Found on $found_count platforms${NC}"
+}
+
+phoneinfoga-scan() {
+    echo -e "${BIYellow}Phone Number OSINT Scan${NC}"
+    echo -e "${BICyan}Enter phone number (with country code): ${NC}"
+    read phone
+    
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/osint_results/phoneinfoga_${phone}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/phoneinfoga_results.txt"
+    
+    echo -e "${BIBlue}Gathering information for $phone...${NC}"
+    
+    phoneinfoga -n "$phone" 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/osint_results/${NC}"
+}
+
+goodork-scan() {
+    echo -e "${BIYellow}Google Dorking Scan${NC}"
+    echo -e "${BICyan}Enter target domain or company name: ${NC}"
+    read target
+    
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/osint_results/goodork_${target}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/dorking_results.txt"
+    
+    echo -e "${BIBlue}Running Google dorks for $target...${NC}"
+    
+    goodork -d "$target" 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/osint_results/${NC}"
+}
+
+# ===========================================
+# FIXED WORKFLOW FUNCTIONS
+# ===========================================
+
+auto-dork() {
+    echo -e "${BIYellow}Auto-Dork Pipeline${NC}"
+    echo -e "${BICyan}Enter domain (e.g., example.com): ${NC}"
+    read domain
+    
+    clean_name=$(clean_domain "$domain")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/workflow_results/${clean_name}_dork_${timestamp}"
+    mkdir -p "$output_dir"
+    
+    echo -e "${BIBlue}[1/5] Wayback URLs...${NC}"
+    echo "$domain" | waybackurls 2>/dev/null | tee "${output_dir}/wayback.txt"
+    
+    echo -e "${BIBlue}[2/5] GAU URLs...${NC}"
+    echo "$domain" | gau 2>/dev/null | tee "${output_dir}/gau.txt"
+    
+    echo -e "${BIBlue}[3/5] Merging...${NC}"
+    cat "${output_dir}/wayback.txt" "${output_dir}/gau.txt" 2>/dev/null | sort -u | tee "${output_dir}/all_urls.txt"
+    
+    echo -e "${BIBlue}[4/5] Live URLs...${NC}"
+    cat "${output_dir}/all_urls.txt" 2>/dev/null | httpx -silent 2>/dev/null | tee "${output_dir}/live_urls.txt"
+    
+    echo -e "${BIBlue}[5/5] Parameters...${NC}"
+    grep "?" "${output_dir}/all_urls.txt" 2>/dev/null | tee "${output_dir}/params.txt"
+    
+    echo -e "${BIGreen}✓ Files saved to:${NC} ${output_dir}/"
+    echo -e "${BIBlue}Location: ~/recon_results/workflow_results/${NC}"
+    echo -e "${BICyan}Stats:${NC}"
+    echo "  Total URLs: $(wc -l "${output_dir}/all_urls.txt" 2>/dev/null | awk '{print $1}' || echo 0)"
+    echo "  Live URLs: $(wc -l "${output_dir}/live_urls.txt" 2>/dev/null | awk '{print $1}' || echo 0)"
+}
+
+recon-full() {
+    echo -e "${BIYellow}Full Reconnaissance Pipeline${NC}"
+    echo -e "${BICyan}Enter domain (e.g., example.com): ${NC}"
+    read domain
+    
+    clean_name=$(clean_domain "$domain")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/workflow_results/${clean_name}_full_${timestamp}"
+    mkdir -p "$output_dir"
+    
+    echo -e "${BIBlue}[1/7] Subdomains...${NC}"
+    subfinder -d "$domain" -silent 2>/dev/null | tee "${output_dir}/subs.txt"
+    
+    echo -e "${BIBlue}[2/7] Live subdomains...${NC}"
+    cat "${output_dir}/subs.txt" 2>/dev/null | httpx -silent 2>/dev/null | tee "${output_dir}/live_subs.txt"
+    
+    echo -e "${BIBlue}[3/7] Wayback URLs...${NC}"
+    cat "${output_dir}/live_subs.txt" 2>/dev/null | waybackurls 2>/dev/null | tee "${output_dir}/wayback.txt"
+    
+    echo -e "${BIBlue}[4/7] GAU URLs...${NC}"
+    cat "${output_dir}/live_subs.txt" 2>/dev/null | gau 2>/dev/null | tee "${output_dir}/gau.txt"
+    
+    echo -e "${BIBlue}[5/7] Merging...${NC}"
+    cat "${output_dir}/wayback.txt" "${output_dir}/gau.txt" 2>/dev/null | sort -u | tee "${output_dir}/all_urls.txt"
+    
+    echo -e "${BIBlue}[6/7] Live scan...${NC}"
+    cat "${output_dir}/all_urls.txt" 2>/dev/null | httpx -silent -title -status-code -tech-detect 2>/dev/null | tee "${output_dir}/final_urls.txt"
+    
+    echo -e "${BIGreen}✓ Files saved to:${NC} ${output_dir}/"
+    echo -e "${BIBlue}Location: ~/recon_results/workflow_results/${NC}"
+    echo -e "${BICyan}Summary:${NC}"
+    echo "  Subdomains: $(wc -l "${output_dir}/subs.txt" 2>/dev/null | awk '{print $1}' || echo 0)"
+    echo "  Live subdomains: $(wc -l "${output_dir}/live_subs.txt" 2>/dev/null | awk '{print $1}' || echo 0)"
+    echo "  Total URLs: $(wc -l "${output_dir}/all_urls.txt" 2>/dev/null | awk '{print $1}' || echo 0)"
+    echo "  Live URLs: $(wc -l "${output_dir}/final_urls.txt" 2>/dev/null | awk '{print $1}' || echo 0)"
+}
+
+recon-quick() {
+    echo -e "${BIYellow}Quick Recon Pipeline${NC}"
+    echo -e "${BICyan}Enter domain: ${NC}"
+    read domain
+    
+    clean_name=$(clean_domain "$domain")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/workflow_results/${clean_name}_quick_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/quick_scan.txt"
+    
+    echo -e "${BIBlue}Running quick recon...${NC}"
+    subfinder -d "$domain" 2>/dev/null | httpx -silent 2>/dev/null | tee "$output_file"
+    
+    echo -e "${BIGreen}✓ Results saved to:${NC} $output_file"
+    echo -e "${BIBlue}Location: ~/recon_results/workflow_results/${NC}"
+    echo -e "${BICyan}Found: $(wc -l "$output_file" 2>/dev/null | awk '{print $1}' || echo 0) live subdomains${NC}"
+}
+
+# ===========================================
+# VIEW AND MANAGE RESULTS
+# ===========================================
+
+view-results() {
+    echo -e "${BIYellow}📁 Available Recon Results${NC}"
+    echo -e "${BICyan}Main directory: ~/recon_results/${NC}"
+    echo ""
+    
+    if [ -d ~/recon_results ] && [ "$(ls -A ~/recon_results 2>/dev/null)" ]; then
+        echo -e "${BIBlue}Directories:${NC}"
+        ls -la ~/recon_results/ | grep "^d"
+        echo ""
+        
+        echo -e "${BIBlue}Recent files:${NC}"
+        find ~/recon_results -type f -name "*.txt" -exec ls -lt {} + 2>/dev/null | head -10
+        
+        echo -e "\n${BICyan}To view a file:${NC}"
+        echo "  cat ~/recon_results/PATH/TO/FILE"
+        echo -e "\n${BICyan}To browse:${NC}"
+        echo "  cd ~/recon_results/ && ls -la"
+    else
+        echo -e "${BIRed}No recon results found. Run a scan first.${NC}"
+    fi
+}
+
+clean-results() {
+    echo -e "${BIYellow}Cleaning old recon results${NC}"
+    echo -e "${BICyan}Delete files older than 7 days? (y/n):${NC}"
+    read choice
+    
+    if [ "$choice" = "y" ]; then
+        find ~/recon_results -type f -mtime +7 -delete 2>/dev/null
+        find ~/recon_results -type d -empty -delete 2>/dev/null
+        echo -e "${BIGreen}✓ Cleanup complete${NC}"
+    else
+        echo -e "${BIYellow}Cancelled${NC}"
+    fi
+}
+
+# ===========================================
+# NEW NEOFETCH DESIGN - RED/WHITE THEME
+# ===========================================
+
+get_phone_info() {
+    MODEL=$(getprop ro.product.model 2>/dev/null || echo "Unknown")
+    BRAND=$(getprop ro.product.brand 2>/dev/null || echo "Unknown")
+    MANUFACTURER=$(getprop ro.product.manufacturer 2>/dev/null || echo "Unknown")
+    ANDROID_VERSION=$(getprop ro.build.version.release 2>/dev/null || echo "Unknown")
+    KERNEL=$(uname -r 2>/dev/null || echo "Unknown")
+    ARCHITECTURE=$(uname -m 2>/dev/null || echo "Unknown")
+    UPTIME=$(uptime -p 2>/dev/null | sed 's/up //' || echo "Unknown")
+    MEMORY=$(free -m 2>/dev/null | awk 'NR==2{print $3"MB / "$2"MB"}' || echo "N/A")
+    BATTERY=$(dumpsys battery 2>/dev/null | grep level | awk '{print $2}' || echo "N/A")
+    STORAGE=$(df -h /data 2>/dev/null | awk 'NR==2{print $3" / "$2}' || echo "N/A")
+    IP_ADDR=$(ip addr show 2>/dev/null | grep inet | grep -v inet6 | head -1 | awk '{print $2}' || echo "N/A")
+    TEMP=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null | awk '{print $1/1000"°C"}' || echo "N/A")
+}
+
+neofetch_custom() {
+    get_phone_info
+    
+    echo ""
+    echo -e "${GRADIENT_RED1}╔══════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GRADIENT_RED2}                   IZUNBI @ TERMUX                  ${NC}"
+    echo -e "${GRADIENT_RED3}             RED TEAM PENTESTING TOOLKIT              ${NC}"
+    echo -e "${GRADIENT_RED1}╚══════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    
+    # ASCII Ghost with Red Background and White Ghost
+    echo -e "${RED_BG}${WHITE}▒▒▒▒▒▒▒▒▄▄▄▄▄▄▄▄▒▒▒▒▒▒${NC}  ${GRADIENT_RED1}┌───┤ ${WHITE}SYSTEM INFO${GRADIENT_RED1} ├────${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒█▒▒▒▄██████████▄▒▒▒▒${NC}  ${WHITE}   User: ${GRADIENT_RED2}$(whoami)${NC}"
+    echo -e "${RED_BG}${WHITE}▒█▐▒▒▒████████████▒▒▒▒${NC}  ${WHITE}   Host: ${GRADIENT_RED2}izunbi-termux${NC}"
+    echo -e "${RED_BG}${WHITE}▒▌▐▒▒██▄▀██████▀▄██▒▒▒${NC}  ${WHITE}   Model: ${GRADIENT_RED3}$MODEL${NC}"
+    echo -e "${RED_BG}${WHITE}▐┼▐▒▒██▄▄▄▄██▄▄▄▄██▒▒▒${NC}  ${WHITE}   Brand: ${GRADIENT_RED3}$BRAND${NC}"
+    echo -e "${RED_BG}${WHITE}▐┼▐▒▒██████████████▒▒▒${NC}  ${WHITE}   Android: ${GRADIENT_RED4}$ANDROID_VERSION${NC}"
+    echo -e "${RED_BG}${WHITE}▐▄▐████─▀▐▐▀█─█─▌▐██▄▒${NC}  ${WHITE}   Kernel: ${GRADIENT_RED3}$KERNEL${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒█████──────────▐███▌${NC}  ${WHITE}   Arch: ${GRADIENT_RED2}$ARCHITECTURE${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒█▀▀██▄█─▄───▐─▄███▀▒${NC}  ${WHITE}   Uptime: ${GRADIENT_RED1}$UPTIME${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒█▒▒███████▄██████▒▒▒${NC}  ${WHITE}   Memory: ${GRADIENT_RED2}$MEMORY${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒▒▒▒██████████████▒▒▒${NC}  ${WHITE}   Battery: ${GRADIENT_RED3}$BATTERY%${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒▒▒▒█████████▐▌██▌▒▒▒${NC}  ${WHITE}   Storage: ${GRADIENT_RED4}$STORAGE${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒▒▒▒▐▀▐▒▌▀█▀▒▐▒█▒▒▒▒▒${NC}  ${WHITE}   IP: ${GRADIENT_RED1}$IP_ADDR${NC}"
+    echo -e "${RED_BG}${WHITE}▒▒▒▒▒▒▒▒▒▒▒▐▒▒▒▒▌▒▒▒▒▒${NC}  ${WHITE}   Temp: ${GRADIENT_RED2}$TEMP${NC}"
+    
+    echo ""
+    echo -e "${GRADIENT_RED3}┌────────────────────────────────────────────────────┐${NC}"
+    echo -e "${GRADIENT_RED2}│ ${WHITE}Quick Commands:${NC}"
+    echo -e "${GRADIENT_RED3}│ ${WHITE}• install-pentest${GRADIENT_RED1} - Install all tools${NC}"
+    echo -e "${GRADIENT_RED3}│ ${WHITE}• tools-list${GRADIENT_RED1} - Show all tools & aliases${NC}"
+    echo -e "${GRADIENT_RED3}│ ${WHITE}• check-tools${GRADIENT_RED1} - Check installed tools${NC}"
+    echo -e "${GRADIENT_RED3}│ ${WHITE}• recon-full${GRADIENT_RED1} - Full recon pipeline${NC}"
+    echo -e "${GRADIENT_RED3}│ ${WHITE}• auto-dork${GRADIENT_RED1} - Automated dorking${NC}"
+    echo -e "${GRADIENT_RED3}└────────────────────────────────────────────────────┘${NC}"
+    
+    # Red/White gradient separator
+    echo -e "${GRADIENT_RED1}◤${GRADIENT_RED2}◤${GRADIENT_RED3}◤${GRADIENT_RED4}◤${RED}◤${WHITE}◤${GRADIENT_RED1}◤${GRADIENT_RED2}◤${GRADIENT_RED3}◤${GRADIENT_RED4}◤${RED}◤${WHITE}◤${GRADIENT_RED1}◤${GRADIENT_RED2}◤${GRADIENT_RED3}◤${GRADIENT_RED4}◤${RED}◤${WHITE}◤${NC}"
+    
+    echo -e "${GRADIENT_RED2}🔥 ${WHITE}Ready for Red Team Operations! ${GRADIENT_RED2}🔥${NC}"
+    echo ""
+}
+
+# Run neofetch on startup
+neofetch_custom
+
+# ===========================================
+# TOOLS-LIST FUNCTION - UPDATED WITH RED/WHITE THEME
+# ===========================================
+
+tools-list() {
+    local COLOR1='\033[38;2;255;182;193m'  # Light Red
+    local COLOR2='\033[38;2;255;255;255m'  # White
+    local COLOR3='\033[38;2;255;105;97m'   # Medium Red
+    local COLOR4='\033[38;2;220;20;60m'    # Crimson
+    local NC='\033[0m'
+    local BOLD='\033[1m'
+    
+    clear
+    echo ""
+    echo -e "${COLOR1}╔══════════════════════════════════════════════════════╗${NC}"
+    echo -e "${COLOR2}        ██╗███████╗██╗   ██╗███╗   ██╗██████╗ ██╗     ${NC}"
+    echo -e "${COLOR3}        ██║╚══███╔╝██║   ██║████╗  ██║██╔══██╗██║     ${NC}"
+    echo -e "${COLOR4}        ██║  ███╔╝ ██║   ██║██╔██╗ ██║██████╔╝██║     ${NC}"
+    echo -e "${COLOR1}        ██║ ███╔╝  ██║   ██║██║╚██╗██║██╔══██╗██║     ${NC}"
+    echo -e "${COLOR2}        ██║███████╗╚██████╔╝██║ ╚████║██████╔╝███████╗${NC}"
+    echo -e "${COLOR3}        ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚══════╝${NC}"
+    echo -e "${COLOR1}╚══════════════════════════════════════════════════════╝${NC}"
+    echo -e "${COLOR2}                PENTESTING TOOLKIT v2.0                ${NC}"
+    echo ""
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}                    SQL INJECTION TOOLS${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}SQLMap${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: sqlmap / sqli${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}The ultimate SQL injection automation tool${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─➢ ${COLOR2}PSQLi Pro${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: psqli / psq / proqli${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Automated PostgreSQL injection scanner${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}            CROSS-SITE SCRIPTING (XSS) TOOLS${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}XSStrike${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: xss / xss-u / xss-crawl${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Advanced XSS detection suite${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─➢ ${COLOR2}Dalfox${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: dalfox-scan${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Fast XSS scanner with DOM-based detection${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}              RECONNAISSANCE & DISCOVERY${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─➢ ${COLOR2}Subfinder${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: sub${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Passive subdomain enumeration${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─➢ ${COLOR2}HTTPX${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: httpx-scan${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Fast HTTP toolkit${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}              VULNERABILITY SCANNERS${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}Dirsearch${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: dirsearch${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Web path scanner${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}Nmap${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: nmap-quick / nmap-full${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Network mapper${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}                    OSINT TOOLS${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}Sherlock${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: sherlock${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Find usernames across social networks${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}PhoneInfoga${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: phoneinfoga${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Phone number OSINT framework${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}                AUTOMATED WORKFLOWS${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}Auto-Dork Pipeline${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: auto-dork${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Automated dorking workflow${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}Recon Full${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: recon-full${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Full reconnaissance pipeline${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo -e "${COLOR3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${COLOR2}              UTILITY & MANAGEMENT${NC}"
+    echo -e "${COLOR1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${COLOR1}┌─➢ ${COLOR2}Install All Tools${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: install-pentest${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}One-command installation${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    echo -e "${COLOR1}┌─ ➢ ${COLOR2}Check Tools${NC}"
+    echo -e "${COLOR1}│   ${COLOR4}Alias: check-tools${NC}"
+    echo -e "${COLOR1}│   ${COLOR3}Verify installation status${NC}"
+    echo -e "${COLOR1}└────────────────────────────────────────────────────${NC}"
+    
+    echo ""
+    echo -e "${COLOR3}📁 ${COLOR2}All results are saved to: ${COLOR1}~/recon_results/${NC}"
+    echo -e "${COLOR4}⚡ ${COLOR2}Type ${COLOR1}'tools-list' ${COLOR2}to view this menu again${NC}"
+    echo ""
+}
+
+# Alias for tools-list
+alias tlist='tools-list'
+alias tools='tools-list'
+alias list-tools='tools-list'
+alias pentest-tools='tools-list'
+
+# ===========================================
+# SET PATH AND EXPORTS
+# ===========================================
+
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
