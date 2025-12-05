@@ -1,0 +1,686 @@
+clear
+
+# ===========================================
+# CUSTOM PROMPT SETUP (RED/WHITE GRADIENT)
+# ===========================================
+autoload -U colors && colors
+
+# Custom red/white gradient prompt
+PROMPT="%F{196}▌%F{203}█%F{210}█%F{217}█%F{224}█%F{231}█%F{255} %F{231}izunbi%F{255}@%F{231}termux %F{196}➜%f "
+RPROMPT="%F{196}[%F{231}%~%F{196}]%f"
+
+# ===========================================
+# COLOR DEFINITIONS
+# ===========================================
+RED='\033[1;31m'
+LRED='\033[1;91m'
+GREEN='\033[1;32m'
+LGREEN='\033[1;92m'
+YELLOW='\033[1;33m'
+LYELLOW='\033[1;93m'
+BLUE='\033[1;34m'
+LBLUE='\033[1;94m'
+PURPLE='\033[1;35m'
+LPURPLE='\033[1;95m'
+CYAN='\033[1;36m'
+LCYAN='\033[1;96m'
+WHITE='\033[1;37m'
+GRAY='\033[1;90m'
+NC='\033[0m'
+
+# Background colors
+BG_RED='\033[41m'
+BG_WHITE='\033[47m'
+BG_BLACK='\033[40m'
+
+# Gradient colors
+GRAD1='\033[38;5;196m'   # Bright Red
+GRAD2='\033[38;5;203m'   # Red-Orange
+GRAD3='\033[38;5;210m'   # Light Red
+GRAD4='\033[38;5;217m'   # Pink-Red
+GRAD5='\033[38;5;224m'   # Light Pink
+GRAD6='\033[38;5;231m'   # White
+
+# ===========================================
+# NEW NEOFETCH DESIGN - GHOST THEME
+# ===========================================
+
+new_neofetch() {
+    clear
+    
+    # Get system info
+    MODEL=$(getprop ro.product.model 2>/dev/null || echo "Unknown")
+    BRAND=$(getprop ro.product.brand 2>/dev/null || echo "Unknown")
+    ANDROID=$(getprop ro.build.version.release 2>/dev/null || echo "Unknown")
+    KERNEL=$(uname -r 2>/dev/null || echo "Unknown")
+    ARCH=$(uname -m 2>/dev/null || echo "Unknown")
+    USER=$(whoami)
+    SHELL_NAME=$(basename $SHELL)
+    UPTIME=$(uptime -p 2>/dev/null | sed 's/up //' || echo "Unknown")
+    MEMORY=$(free -m 2>/dev/null | awk 'NR==2{printf "%.1f/%.1f MB", $3/1024, $2/1024}' || echo "N/A")
+    
+    # Ghost ASCII Art with red background and white ghost
+    echo -e "\n"
+    echo -e "${BG_RED}${WHITE}▒▒▒▒▒▒▒▒▄▄▄▄▄▄▄▄▒▒▒▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒█▒▒▒▄██████████▄▒▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒█▐▒▒▒████████████▒▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▌▐▒▒██▄▀██████▀▄██▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▐┼▐▒▒██▄▄▄▄██▄▄▄▄██▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▐┼▐▒▒██████████████▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▐▄▐████─▀▐▐▀█─█─▌▐██▄▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒█████──────────▐███▌${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒█▀▀██▄█─▄───▐─▄███▀▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒█▒▒███████▄██████▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒▒▒▒██████████████▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒▒▒▒█████████▐▌██▌▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒▒▒▒▐▀▐▒▌▀█▀▒▐▒█▒▒▒▒▒${NC}"
+    echo -e "${BG_RED}${WHITE}▒▒▒▒▒▒▒▒▒▒▒▐▒▒▒▒▌▒▒▒▒▒${NC}"
+    
+    echo -e "\n"
+    
+    # System info with gradient
+    echo -e "${GRAD1}╔════════════════════════════════════════╗${NC}"
+    echo -e "${GRAD2}║          ${WHITE}TERMUX PENTEST SUITE${GRAD2}          ║${NC}"
+    echo -e "${GRAD3}╠════════════════════════════════════════╣${NC}"
+    echo -e "${GRAD4}║ ${WHITE}User     ${GRAD5}: ${WHITE}$USER${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Device   ${GRAD5}: ${WHITE}$BRAND $MODEL${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Android  ${GRAD5}: ${WHITE}$ANDROID${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Kernel   ${GRAD5}: ${WHITE}$KERNEL${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Arch     ${GRAD5}: ${WHITE}$ARCH${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Shell    ${GRAD5}: ${WHITE}$SHELL_NAME${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Uptime   ${GRAD5}: ${WHITE}$UPTIME${NC}"
+    echo -e "${GRAD4}║ ${WHITE}Memory   ${GRAD5}: ${WHITE}$MEMORY${NC}"
+    echo -e "${GRAD1}╚════════════════════════════════════════╝${NC}"
+    
+    echo -e "\n"
+    
+    # Quick stats
+    echo -e "${GRAD3}══════════════════════════════════════════${NC}"
+    echo -e "${WHITE}📁 Recon Results: ${RED}$(ls -la ~/recon_results/*/*.txt 2>/dev/null | wc -l) files${NC}"
+    echo -e "${WHITE}🔧 Tools Ready: ${GREEN}$(ls ~/ | grep -E '(sqlmap|XSStrike|dirsearch)' | wc -l) major tools${NC}"
+    echo -e "${GRAD3}══════════════════════════════════════════${NC}"
+    
+    # Quick commands reminder
+    echo -e "\n${WHITE}Quick Commands:${NC}"
+    echo -e "  ${RED}• ${WHITE}install-pentest ${GRAY}- Install all tools${NC}"
+    echo -e "  ${RED}• ${WHITE}tools-list      ${GRAY}- Show all tools menu${NC}"
+    echo -e "  ${RED}• ${WHITE}check-tools     ${GRAY}- Check installed tools${NC}"
+    echo -e "  ${RED}• ${WHITE}sqlmap-scan     ${GRAY}- Start SQL injection scan${NC}"
+    echo -e "  ${RED}• ${WHITE}xss-scan        ${GRAY}- Start XSS scan${NC}"
+    echo -e "\n${GRAD6}Ready for action, $USER! 👻${NC}\n"
+}
+
+# ===========================================
+# CREATE ORGANIZED DIRECTORIES
+# ===========================================
+mkdir -p ~/recon_results 2>/dev/null
+mkdir -p ~/recon_results/sqli_results 2>/dev/null
+mkdir -p ~/recon_results/xss_results 2>/dev/null
+mkdir -p ~/recon_results/dir_results 2>/dev/null
+mkdir -p ~/recon_results/nmap_results 2>/dev/null
+mkdir -p ~/recon_results/param_results 2>/dev/null
+mkdir -p ~/recon_results/osint_results 2>/dev/null
+mkdir -p ~/recon_results/workflow_results 2>/dev/null
+
+# ===========================================
+# HELPER FUNCTIONS
+# ===========================================
+
+clean_domain() {
+    local domain="$1"
+    domain="${domain#http://}"
+    domain="${domain#https://}"
+    domain="${domain%%/*}"
+    domain="${domain%%:*}"
+    echo "$domain" | sed 's/[^a-zA-Z0-9]/_/g'
+}
+
+check_cmd() {
+    if command -v "$1" &>/dev/null; then
+        return 0
+    else
+        echo -e "${RED}Error: $1 not installed. Run 'install-pentest' first.${NC}"
+        return 1
+    fi
+}
+
+# ===========================================
+# AUTO-INSTALL FUNCTIONS
+# ===========================================
+
+install_tool() {
+    local tool_name="$1"
+    local install_func="$2"
+
+    if [[ ! -d "$HOME/$tool_name" ]] && [[ ! -f "$(which $tool_name 2>/dev/null)" ]]; then
+        echo -e "${YELLOW}Installing $tool_name...${NC}"
+        $install_func
+        echo -e "${GREEN}✓ $tool_name installed${NC}"
+    else
+        echo -e "${CYAN}✓ $tool_name already installed${NC}"
+    fi
+}
+
+# ========== SQL INJECTION TOOLS ==========
+
+install_sqlmap() {
+    git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git ~/sqlmap-dev
+}
+
+install_psqli_pro() {
+    git clone https://github.com/root-tanishq/psqli-pro.git ~/psqli-pro
+}
+
+install_sqli_tools() {
+    echo -e "${PURPLE}Installing SQL Injection Tools...${NC}"
+    install_tool "sqlmap-dev" install_sqlmap
+    install_tool "psqli-pro" install_psqli_pro
+}
+
+# ========== XSS TOOLS ==========
+
+install_xsstrike() {
+    git clone https://github.com/s0md3v/XSStrike.git ~/XSStrike
+    cd ~/XSStrike && pip install -r requirements.txt 2>/dev/null || pip3 install -r requirements.txt 2>/dev/null || true
+}
+
+install_dalfox() {
+    go install github.com/hahwul/dalfox/v2@latest
+}
+
+install_xss_tools() {
+    echo -e "${PURPLE}Installing XSS Tools...${NC}"
+    install_tool "XSStrike" install_xsstrike
+    install_tool "dalfox" install_dalfox
+}
+
+# ========== RECON TOOLS ==========
+
+install_subfinder() {
+    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+}
+
+install_httpx() {
+    go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+}
+
+install_katana() {
+    go install github.com/projectdiscovery/katana/cmd/katana@latest
+}
+
+install_waybackurls() {
+    go install github.com/tomnomnom/waybackurls@latest
+}
+
+install_gau() {
+    go install github.com/lc/gau/v2/cmd/gau@latest
+}
+
+install_assetfinder() {
+    go install github.com/tomnomnom/assetfinder@latest
+}
+
+install_recon_tools() {
+    echo -e "${PURPLE}Installing Recon Tools...${NC}"
+    install_tool "subfinder" install_subfinder
+    install_tool "httpx" install_httpx
+    install_tool "katana" install_katana
+    install_tool "waybackurls" install_waybackurls
+    install_tool "assetfinder" install_assetfinder
+    install_tool "gau" install_gau
+}
+
+# ========== DIRECTORY SCANNING ==========
+
+install_dirsearch() {
+    git clone https://github.com/maurosoria/dirsearch.git ~/dirsearch
+}
+
+install_gobuster() {
+    go install github.com/OJ/gobuster/v3@latest
+}
+
+install_ffuf() {
+    go install github.com/ffuf/ffuf@latest
+}
+
+install_vuln_tools() {
+    echo -e "${PURPLE}Installing Vulnerability Scanners...${NC}"
+    install_tool "dirsearch" install_dirsearch
+    install_tool "gobuster" install_gobuster
+    install_tool "ffuf" install_ffuf
+}
+
+# ========== UTILITY TOOLS ==========
+
+install_jq() {
+    pkg install jq -y
+}
+
+install_wget() {
+    pkg install wget -y
+}
+
+install_curl() {
+    pkg install curl -y
+}
+
+install_utils() {
+    echo -e "${PURPLE}Installing Utilities...${NC}"
+    install_tool "jq" install_jq
+    install_tool "wget" install_wget
+    install_tool "curl" install_curl
+}
+
+# ========== OSINT TOOLS ==========
+
+install_paramspider() {
+    git clone https://github.com/devanshbatham/ParamSpider ~/ParamSpider
+    cd ~/ParamSpider && pip3 install -r requirements.txt 2>/dev/null || true
+}
+
+install_arjun() {
+    pip3 install arjun 2>/dev/null || pip install arjun 2>/dev/null || true
+}
+
+install_gf() {
+    go install github.com/tomnomnom/gf@latest
+    mkdir -p ~/.gf 2>/dev/null
+    [ -d ~/.gf ] || git clone https://github.com/tomnomnom/gf ~/.gf 2>/dev/null
+}
+
+install_goodork() {
+    git clone https://github.com/k3170makan/GooDork ~/GooDork 2>/dev/null || true
+    cd ~/GooDork 2>/dev/null && pip3 install -r requirements.txt 2>/dev/null || true
+}
+
+install_sherlock() {
+    if [ -d ~/sherlock ]; then
+        rm -rf ~/sherlock
+    fi
+    git clone https://github.com/sherlock-project/sherlock.git ~/sherlock
+    cd ~/sherlock
+    python3 -m pip install -r requirements.txt 2>/dev/null || pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt 2>/dev/null || true
+    echo -e "${GREEN}Sherlock installed in ~/sherlock${NC}"
+}
+
+install_phoneinfoga() {
+    if [ -d ~/phoneinfoga ]; then
+        rm -rf ~/phoneinfoga
+    fi
+    git clone https://github.com/sundowndev/phoneinfoga.git ~/phoneinfoga
+    cd ~/phoneinfoga
+    if command -v docker &>/dev/null; then
+        docker build -t phoneinfoga . 2>/dev/null || echo "Docker build failed, using Python"
+    fi
+    pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt 2>/dev/null || true
+    echo -e "${GREEN}PhoneInfoga installed in ~/phoneinfoga${NC}"
+}
+
+install_osint_tools() {
+    echo -e "${PURPLE}Installing OSINT Tools...${NC}"
+    install_tool "ParamSpider" install_paramspider
+    install_tool "arjun" install_arjun
+    install_tool "gf" install_gf
+    install_tool "GooDork" install_goodork
+    install_tool "sherlock" install_sherlock
+    install_tool "phoneinfoga" install_phoneinfoga
+}
+
+# ========== MAIN INSTALLATION FUNCTION ==========
+
+install_all_tools() {
+    echo -e "${YELLOW}Starting installation of pentesting tools...${NC}"
+
+    pkg update -y && pkg upgrade -y
+    pkg install python python-pip golang -y
+
+    export GOPATH=$HOME/go
+    export PATH=$PATH:$GOPATH/bin
+    echo 'export GOPATH=$HOME/go' >> ~/.zshrc
+    echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
+
+    install_utils
+    install_sqli_tools
+    install_xss_tools
+    install_recon_tools
+    install_vuln_tools
+    install_osint_tools
+
+    echo -e "${GREEN}✓ All tools installed successfully!${NC}"
+    echo -e "${CYAN}Run: source ~/.zshrc${NC}"
+}
+
+# ===========================================
+# TOOL ALIASES (FUNCTIONS FOR BETTER DETECTION)
+# ===========================================
+
+# SQL Injection Functions
+sqlmap() {
+    if [[ -f ~/sqlmap-dev/sqlmap.py ]]; then
+        python3 ~/sqlmap-dev/sqlmap.py "$@"
+    elif command -v sqlmap &>/dev/null; then
+        command sqlmap "$@"
+    else
+        echo -e "${RED}SQLMap not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias sqli='sqlmap --batch'
+
+psqli() {
+    if [[ -f ~/psqli-pro/psqli.sh ]]; then
+        bash ~/psqli-pro/psqli.sh "$@"
+    elif [[ -f ~/psqli-pro/psqli.py ]]; then
+        python3 ~/psqli-pro/psqli.py "$@"
+    else
+        echo -e "${RED}PSQLi Pro not installed${NC}"
+        return 1
+    fi
+}
+alias psq='psqli'
+alias proqli='psqli'
+
+# XSS Functions
+xss() {
+    if [[ -f ~/XSStrike/xsstrike.py ]]; then
+        python3 ~/XSStrike/xsstrike.py "$@"
+    elif command -v xsstrike &>/dev/null; then
+        command xsstrike "$@"
+    else
+        echo -e "${RED}XSStrike not installed${NC}"
+        return 1
+    fi
+}
+alias xss-u='xss -u'
+alias xss-crawl='xss --crawl'
+alias xss-fuzz='xss --fuzzer'
+alias xss-file='xss --file'
+alias xss-update='cd ~/XSStrike 2>/dev/null && git pull || echo "XSStrike not found"'
+
+dalfox() {
+    if command -v dalfox &>/dev/null; then
+        command dalfox "$@"
+    elif [[ -f ~/go/bin/dalfox ]]; then
+        ~/go/bin/dalfox "$@"
+    else
+        echo -e "${RED}Dalfox not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias dalfox-scan='dalfox'
+
+# Recon Functions
+subfinder() {
+    if command -v subfinder &>/dev/null; then
+        command subfinder "$@"
+    elif [[ -f ~/go/bin/subfinder ]]; then
+        ~/go/bin/subfinder "$@"
+    else
+        echo -e "${RED}Subfinder not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias sub='subfinder'
+
+httpx() {
+    if command -v httpx &>/dev/null; then
+        command httpx "$@"
+    elif [[ -f ~/go/bin/httpx ]]; then
+        ~/go/bin/httpx "$@"
+    else
+        echo -e "${RED}HTTPX not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias httpx-scan='httpx'
+
+katana() {
+    if command -v katana &>/dev/null; then
+        command katana "$@"
+    elif [[ -f ~/go/bin/katana ]]; then
+        ~/go/bin/katana "$@"
+    else
+        echo -e "${RED}Katana not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias katanascan='katana'
+
+waybackurls() {
+    if command -v waybackurls &>/dev/null; then
+        command waybackurls "$@"
+    elif [[ -f ~/go/bin/waybackurls ]]; then
+        ~/go/bin/waybackurls "$@"
+    else
+        echo -e "${RED}Waybackurls not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias wayback='waybackurls'
+
+assetfinder() {
+    if command -v assetfinder &>/dev/null; then
+        command assetfinder "$@"
+    elif [[ -f ~/go/bin/assetfinder ]]; then
+        ~/go/bin/assetfinder "$@"
+    else
+        echo -e "${RED}Assetfinder not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias assets='assetfinder'
+
+gau() {
+    if command -v gau &>/dev/null; then
+        command gau "$@"
+    elif [[ -f ~/go/bin/gau ]]; then
+        ~/go/bin/gau "$@"
+    else
+        echo -e "${RED}GAU not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias gau-urls='gau'
+
+# Directory Scanning
+dirsearch() {
+    if [[ -f ~/dirsearch/dirsearch.py ]]; then
+        python3 ~/dirsearch/dirsearch.py "$@"
+    elif command -v dirsearch &>/dev/null; then
+        command dirsearch "$@"
+    else
+        echo -e "${RED}Dirsearch not installed${NC}"
+        return 1
+    fi
+}
+
+gobuster() {
+    if command -v gobuster &>/dev/null; then
+        command gobuster "$@"
+    elif [[ -f ~/go/bin/gobuster ]]; then
+        ~/go/bin/gobuster "$@"
+    else
+        echo -e "${RED}Gobuster not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias gobust='gobuster'
+
+ffuf() {
+    if command -v ffuf &>/dev/null; then
+        command ffuf "$@"
+    elif [[ -f ~/go/bin/ffuf ]]; then
+        ~/go/bin/ffuf "$@"
+    else
+        echo -e "${RED}FFUF not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias fuzz='ffuf'
+
+# Parameter Discovery
+paramspider() {
+    if [[ -f ~/ParamSpider/paramspider.py ]]; then
+        python3 ~/ParamSpider/paramspider.py "$@"
+    elif command -v paramspider &>/dev/null; then
+        command paramspider "$@"
+    else
+        echo -e "${RED}ParamSpider not installed${NC}"
+        return 1
+    fi
+}
+alias param-spider='paramspider'
+
+arjun() {
+    if command -v arjun &>/dev/null; then
+        command arjun "$@"
+    elif python3 -c "import arjun" &>/dev/null; then
+        python3 -m arjun "$@"
+    else
+        echo -e "${RED}Arjun not installed${NC}"
+        return 1
+    fi
+}
+alias arjun-scan='arjun'
+alias param-hunt='arjun'
+
+# Pattern Matching
+gf() {
+    if command -v gf &>/dev/null; then
+        command gf "$@"
+    elif [[ -f ~/go/bin/gf ]]; then
+        ~/go/bin/gf "$@"
+    else
+        echo -e "${RED}GF not installed. Run: install-pentest${NC}"
+        return 1
+    fi
+}
+alias gf-patterns='gf'
+alias find-sqli='gf sqli'
+alias find-xss='gf xss'
+
+goodork() {
+    if [[ -f ~/GooDork/GooDork.py ]]; then
+        python3 ~/GooDork/GooDork.py "$@"
+    else
+        echo -e "${RED}GooDork not installed${NC}"
+        return 1
+    fi
+}
+
+# OSINT Functions
+sherlock() {
+    if [[ -f ~/sherlock/sherlock/sherlock.py ]]; then
+        python3 ~/sherlock/sherlock/sherlock.py "$@"
+    elif [[ -f ~/sherlock/sherlock.py ]]; then
+        python3 ~/sherlock/sherlock.py "$@"
+    else
+        echo -e "${RED}Sherlock not installed${NC}"
+        return 1
+    fi
+}
+
+phoneinfoga() {
+    if [[ -f ~/phoneinfoga/phoneinfoga.py ]]; then
+        cd ~/phoneinfoga && python3 phoneinfoga.py "$@"
+    else
+        echo -e "${RED}PhoneInfoga not installed${NC}"
+        return 1
+    fi
+}
+
+# ===========================================
+# UTILITY ALIASES
+# ===========================================
+
+alias install-pentest='install_all_tools'
+alias update-tools='{ cd ~/XSStrike 2>/dev/null && git pull; cd ~/sqlmap-dev 2>/dev/null && git pull; cd ~/dirsearch 2>/dev/null && git pull; echo "Tools updated"; } || echo "Some tools not found"'
+
+check-tools() {
+    echo -e "${CYAN}Installed Tools:${NC}\n"
+    for cmd in sqlmap subfinder httpx katana waybackurls python3 nmap; do
+        if command -v $cmd &>/dev/null; then
+            echo -e "${GREEN}✓ $cmd${NC}"
+        else
+            echo -e "${RED}✗ $cmd${NC}"
+        fi
+    done
+}
+
+# Navigation aliases
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# Nmap aliases
+alias nmap-quick='nmap -T4 -F'
+alias nmap-full='nmap -p- -sV -sC'
+alias nmap-stealth='nmap -sS'
+alias nmap-udp='nmap -sU'
+alias nmap-os='nmap -O'
+
+# File listing
+if command -v lsd &>/dev/null; then
+    alias ls='lsd'
+    alias ll='lsd -l'
+    alias la='lsd -A'
+    alias l='lsd -lA'
+    alias lt='lsd --tree'
+else
+    alias ls='ls --color=auto'
+    alias ll='ls -l --color=auto'
+    alias la='ls -la --color=auto'
+    alias l='ls -la --color=auto'
+fi
+
+# ===========================================
+# SCAN FUNCTIONS
+# ===========================================
+
+sqlmap-scan() {
+    echo -e "${YELLOW}SQL Injection Scan${NC}"
+    echo -e "${CYAN}Enter target URL: ${NC}"
+    read target
+    
+    clean_name=$(clean_domain "$target")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/sqli_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/sqlmap_scan.txt"
+    
+    echo -e "${BLUE}Running SQLMap on $target...${NC}"
+    sqlmap -u "$target" --batch --level=3 --risk=2 | tee "$output_file"
+    
+    echo -e "${GREEN}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BLUE}Location: ~/recon_results/sqli_results/${NC}"
+}
+
+xss-scan() {
+    echo -e "${YELLOW}XSS Vulnerability Scan${NC}"
+    echo -e "${CYAN}Enter target URL: ${NC}"
+    read target
+    
+    clean_name=$(clean_domain "$target")
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_dir="$HOME/recon_results/xss_results/${clean_name}_${timestamp}"
+    mkdir -p "$output_dir"
+    output_file="${output_dir}/xss_scan.txt"
+    
+    echo -e "${BLUE}Running XSStrike on $target...${NC}"
+    xss -u "$target" --crawl 2>/dev/null | tee "$output_file"
+    
+    echo -e "${GREEN}✓ Results saved to:${NC}"
+    echo "  $output_file"
+    echo -e "${BLUE}Location: ~/recon_results/xss_results/${NC}"
+}
+
+# ===========================================
+# ENHANCED TOOLS LIST
+# ===========================================
+
+tools-list() {
+    clear
+    echo -e "\n"
+    echo -e "${GRAD1}╔══════════════════════════════════════════════════╗$
